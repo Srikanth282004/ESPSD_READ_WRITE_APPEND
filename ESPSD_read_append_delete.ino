@@ -173,6 +173,18 @@ void setup(){
     return;
   }
 
+  bool fileexists = SD.exists("/data.txt");
+   Serial.print(fileexists);
+   if(!fileexists) {
+       Serial.println("File doesn’t exist");
+       Serial.println("Creating file...");
+       // Create File and add header
+       writeFile(SD, "/data.txt", "MY ESP32 DATA \r\n");
+   }
+   else {
+       Serial.println("File already exists");
+   }
+
   Serial.print("SD Card Type: ");
   if(cardType == CARD_MMC){
     Serial.println("MMC");
@@ -187,18 +199,26 @@ void setup(){
   uint64_t cardSize = SD.cardSize() / (1024 * 1024);
   Serial.printf("SD Card Size: %lluMB\n", cardSize);
 
-  listDir(SD, "/", 0);
-  createDir(SD, "/mydir");
-  listDir(SD, "/", 0);
-  removeDir(SD, "/mydir");
-  listDir(SD, "/", 2);
-  writeFile(SD, "/hello.txt", "Hello ");
-  appendFile(SD, "/hello.txt", "World!\n");
-  readFile(SD, "/hello.txt");
-  deleteFile(SD, "/foo.txt");
-  renameFile(SD, "/hello.txt", "/foo.txt");
-  readFile(SD, "/foo.txt");
-  testFileIO(SD, "/test.txt");
+ if (Serial.available()){
+    
+    String mydata=Serial.readString();
+    
+    if(mydata == "D") // To delete the file 
+         {
+            deleteFile(SD,"/data.txt");
+            Serial.println("File deleted!");
+            return; 
+         }
+         else if(mydata == "R") // To read the file
+         {
+            readFile(SD, "/data.txt");
+            return;
+         }
+         else{
+          appendFile(SD, "/data.txt", (String(mydata)+ "\r\n").c_str()); //Append data to the file
+         }
+     // Read the contents of the file
+  }
   Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
   Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
 }
